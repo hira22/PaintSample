@@ -24,23 +24,23 @@ struct ContentView: View {
     @State private var currentColor: Color = defaultColor
     @State private var currentLineWidth: Double = defaultLineWidth
 
-    var body: some View {
-        VStack {
-            Button(action: { lines = [] }) {
-                Label("Clear", systemImage: "xmark.circle")
-                    .padding()
-            }
 
+    @State private var isSparkle: Bool = false
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
             Canvas { context, size in
 
                 for line in lines {
                     var path = Path()
                     path.addLines(line.points)
 
+                    
+
                     context.stroke(path, with: .color(line.color), style: StrokeStyle(lineWidth: line.lineWidth, lineCap: .round))
                 }
             }
-            .frame(minWidth: 400, minHeight: 400)
+            .ignoresSafeArea()
             .gesture(
                 DragGesture(minimumDistance: .zero, coordinateSpace: .local)
                     .onChanged({ value in
@@ -56,15 +56,28 @@ struct ContentView: View {
                     })
             )
 
-            HStack {
-                Slider(value: $currentLineWidth, in: 1...20) {}
-                .onChange(of: currentLineWidth) { newValue in
-                    currentLine.lineWidth = newValue
+            Button(action: { lines = [] }) {
+                Text("Clear")
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+
+            HStack(spacing: 24) {
+                Toggle(isOn: $isSparkle) {
+                    Image(systemName: "sparkles")
+                        .resizable()
+                        .scaledToFit()
                 }
-                .padding(.horizontal)
+                .toggleStyle(.button)
+                .clipShape(Circle())
 
                 Divider()
 
+                Slider(value: $currentLineWidth, in: 1...20) {}
+                    .onChange(of: currentLineWidth) { newValue in
+                        currentLine.lineWidth = newValue
+                    }
+
+                Divider()
 
                 ColorPicker(selection: $currentColor) {
                     HStack {
@@ -82,8 +95,6 @@ struct ContentView: View {
                         }
                     }
                 }
-                .padding()
-                .frame(maxWidth: 300)
                 .onChange(of: currentColor) { newValue in
                     currentLine.color = newValue
                 }
@@ -101,10 +112,7 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        Group {
-            ContentView()
-            ContentView()
-                .preferredColorScheme(.dark)
-        }
+        ContentView()
+            .preferredColorScheme(.dark)
     }
 }
