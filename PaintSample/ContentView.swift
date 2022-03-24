@@ -15,7 +15,7 @@ struct ContentView: View {
     }
 
     private static let defaultColor: Color = .gray
-    private static let defaultLineWidth: Double = 4
+    private static let defaultLineWidth: Double = 8
     private let colors: [Color] = [defaultColor, .red, .orange, .green, .blue, .purple]
 
     @State private var lines: [Line] = []
@@ -35,19 +35,19 @@ struct ContentView: View {
                     var path = Path()
                     path.addLines(line.points)
 
-                    
-
-                    context.stroke(path, with: .color(line.color), style: StrokeStyle(lineWidth: line.lineWidth, lineCap: .round))
+                    context.stroke(path, with: .color(line.color), style: StrokeStyle(lineWidth: line.lineWidth, lineCap: .round, lineJoin: .round))
                 }
             }
-            .ignoresSafeArea()
             .gesture(
                 DragGesture(minimumDistance: .zero, coordinateSpace: .local)
                     .onChanged({ value in
-                        let newPoint = value.location
-                        currentLine.points.append(newPoint)
-
-                        self.lines.append(currentLine)
+                        if value.translation.height + value.translation.width == 0 {
+                            self.lines.append(currentLine)
+                        } else {
+                            let newPoint = value.location
+                            currentLine.points.append(newPoint)
+                            self.lines[lines.indices.last!] = currentLine
+                        }
 
                     })
                     .onEnded({ value in
@@ -55,9 +55,10 @@ struct ContentView: View {
 
                     })
             )
+            .ignoresSafeArea()
 
             Button(action: { lines = [] }) {
-                Text("Clear")
+                Label("Clear", systemImage: "xmark.circle")
             }
             .frame(maxHeight: .infinity, alignment: .top)
 
@@ -94,12 +95,14 @@ struct ContentView: View {
                                 }
                         }
                     }
+                    .padding(.trailing, 12)
                 }
+                .padding(.trailing)
                 .onChange(of: currentColor) { newValue in
                     currentLine.color = newValue
                 }
             }
-            .frame(maxHeight: 48)
+            .frame(maxHeight: 36)
             .padding()
             .background(
                 Capsule()
@@ -114,5 +117,6 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
             .preferredColorScheme(.dark)
+            .previewInterfaceOrientation(.landscapeLeft)
     }
 }
